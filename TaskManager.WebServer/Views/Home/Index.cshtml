@@ -1,0 +1,37 @@
+﻿@model IList<TaskManager.WebServer.Models.TaskModel>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+<h2>Total Number of Tasks: <span id="number-of_tasks">-</span></h2>
+<br />
+<ul>
+    @{
+        foreach (var task in Model)
+        {
+
+            <li>@task.Name / @task.Description / @task.Id</li>
+
+        }
+    }
+</ul>
+
+@section indexpage
+{
+    <script>
+        $.ajax({
+            url: 'http://localhost:63441/tasks/totaltasks',
+            dataType: 'json',
+            type: 'GET',
+            contentType: 'application/json',
+            data: '',
+            processData: false,
+            success: function (data, textStatus, jQxhr) {
+                $('#number-of_tasks').text(data);
+            },
+            error: function (jqXhr, textStatus, errorThrown) {
+                console.log(errorThrown);
+            }
+        });
+    </script>
+}
