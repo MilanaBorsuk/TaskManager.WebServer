@@ -3,6 +3,8 @@
 @{
     ViewBag.Title = "Home Page";
 }
+
+
 <h2>Total Number of Tasks: <span id="number-of_tasks">-</span></h2>
 <br />
 <ul>
@@ -10,15 +12,94 @@
         foreach (var task in Model)
         {
 
-            <li>@task.Name / @task.Description / @task.Id</li>
+            <li id="li_@task.Id">@task.Name / @task.Description / @task.Id
+                <a href="#" class="delete-button" data-id="@task.Id">Delete</a> 
+    
+    </li>
 
         }
     }
 </ul>
 
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="delete">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section indexpage
 {
+<script>
+
+        //class
+    //var taskManager = function () {
+    //    //this.task = "4";;
+    //};
+
+        function taskManager(){ }
+        taskManager.prototype.confirmDelete = function () {
+            var recordToDelete = $(this).attr("data-id"); // now we need the data-id to retrieve the identifier for the item to delete
+
+            $('#myModal').modal('toggle')
+
+            $('#myModal').modal({ backdrop: 'static', keyboard: false })
+              .one('click', '#delete', function (e) {
+                  $('#myModal').modal('hide');
+                  $('#li_' + recordToDelete).hide();
+                  taskCore.deleteTask(recordToDelete);
+              })
+        };
+
+        taskManager.prototype.deleteTask = function (task) {
+            $.ajax({
+                url: 'http://localhost:63441/tasks/removetask',
+                dataType: 'json',
+                type: 'POST',
+                contentType: 'application/json',
+                data: "{task:" + task + "}",
+                processData: false,
+                success: function (data, textStatus, jQxhr) {
+                    alert("Task was deleted");
+                },
+                error: function (jqXhr, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                    $('#li_' + task).show();
+                }
+            });
+        }
+
+</script>
+
     <script>
+
+        $().ready(function () {
+            //$(".delete-button").click(null, taskCore.confirmDelete);  //call by immediate excecution function  
+            
+            $(".delete-button").click(null, OpenConfirm);  //call by immediate excecution function 
+            return false;
+        });
+
+        function OpenConfirm()
+        {
+            var taskManagerClass = new taskManager();
+            taskManagerClass.confirmDelete();
+        }
+
+         
+
         $.ajax({
             url: 'http://localhost:63441/tasks/totaltasks', 
             dataType: 'json',
@@ -33,5 +114,74 @@
                 console.log(errorThrown);
             }
         });
+
+        function DeleteTask(task)
+        {            
+            $.ajax({
+                url: 'http://localhost:63441/tasks/removetask',
+                dataType: 'json',
+                type: 'POST',
+                contentType: 'application/json',
+                data: "{task:" + task + "}",
+                processData: false,
+                success: function (data, textStatus, jQxhr) {
+                    alert("Task was deleted");
+                },
+                error: function (jqXhr, textStatus, errorThrown) {
+                    console.log(errorThrown);
+                    $('#li_' + task).show();
+                }
+            });
+        }
+
+       
     </script>
+
+    <script>
+
+        var taskCore = taskCore || {};
+
+        //(function (ns) { ns.nameMyFunction = function (){};... })(nameMyNamespace); immidiate excecution function
+        // sub namespace
+        //MYAPP.event = {};
+        
+        (function (ns) {
+
+            ns.confirmDelete = function () {
+                var recordToDelete = $(this).attr("data-id"); // now we need the data-id to retrieve the identifier for the item to delete              
+
+                $('#myModal').modal('toggle')
+
+                $('#myModal').modal({ backdrop: 'static', keyboard: false })
+                  .one('click', '#delete', function (e) {
+                      $('#myModal').modal('hide');
+                      $('#li_' + recordToDelete).hide();
+                      ns.deleteTask(recordToDelete);
+                  })
+            };
+
+            ns.deleteTask = function (task) {
+                $.ajax({
+                    url: 'http://localhost:63441/tasks/removetask',
+                    dataType: 'json',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: "{task:" + task + "}",
+                    processData: false,
+                    success: function (data, textStatus, jQxhr) {
+                        alert("Task was deleted");
+                    },
+                    error: function (jqXhr, textStatus, errorThrown) {
+                        console.log(errorThrown);
+                        $('#li_' + task).show();
+                    }
+                });
+            }
+        })(taskCore)
+
+    </script>
+
+    
+
+
 }
