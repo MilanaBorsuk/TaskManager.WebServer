@@ -5,6 +5,8 @@ using TaskManager.WebServer.Utilities;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using TaskManager.Cache;
+using System;
 
 namespace TaskManager.WebServer.Controllers
 {
@@ -12,11 +14,18 @@ namespace TaskManager.WebServer.Controllers
     {
         public ActionResult Index()
         {
-            ApplicationServerGateway gateway = new ApplicationServerGateway();
-            var tasks = new List<TaskModel>();
-            var response = gateway.GetTasks<TaskModel>("http://localhost:63441/api/task");
-           
-            return View(response);
+            ApplicationServerGateway gateway = new ApplicationServerGateway();            
+            
+            var cache = CacheFactory.CacheManager(Enums.Task.ToString());
+            //var tasks = (IList<TaskModel>)(new TaskCache().Get("task"));
+            var tasks = (IList<TaskModel>)(cache.Get("task"));
+            if (tasks == null)
+            {
+                tasks = gateway.GetTasks<TaskModel>("http://localhost:63441/api/task");
+                cache.Add("task", tasks);
+            }
+                       
+            return View(tasks);
         }
        
         public ActionResult About()
